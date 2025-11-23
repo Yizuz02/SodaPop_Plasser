@@ -5,6 +5,35 @@ export default function Login({ onLogin }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
+  const getUserRole = async () => {
+  // Obtener token de sessionStorage
+  const token = sessionStorage.getItem("authToken");
+  if (!token) {
+    console.error("No token found, please login first");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/user/role/", {
+      method: "GET",
+      headers: {
+        "Authorization": `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("User role data:", data);
+    return data;
+
+  } catch (err) {
+    console.error("Failed to fetch user role:", err.message);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,14 +47,8 @@ export default function Login({ onLogin }) {
     }
 
     // **Login local para admin**
-    const adminUser = "admin";
-    const adminPass = "Plasser2025!";
-    if (username === adminUser && password === adminPass) {
-      // Guardar token ficticio en session para admin local
-      sessionStorage.setItem("authToken", "local-admin-token");
-      onLogin("admin", "Admin");
-      return;
-    }
+
+    
 
     try {
       // **Login para operadores usando backend**
@@ -49,6 +72,12 @@ export default function Login({ onLogin }) {
 
       // Llamar callback con tipo y nombre de usuario
       onLogin("operator", username);
+      const roleData = await getUserRole();
+      console.log(roleData);
+    if (roleData.is_superuser) {
+      onLogin("admin", "Admin");
+      return;
+    }
 
     } catch (err) {
       setError(err.message);

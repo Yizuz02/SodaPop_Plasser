@@ -4,6 +4,7 @@ import RegisterRoute from "./pages/RegisterRoute";
 import RegisterMachine from "./pages/RegisterMachine";
 import RegisterTrain from "./pages/RegisterTrain";
 import RegisterTraintrip from "./pages/RegisterTraintrip";
+import RegisterStation from "./pages/RegisterStation";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
@@ -53,7 +54,11 @@ export default function App() {
           <Route
             path="/admin/register-traintrip"
             element={<RegisterTraintrip />}
-          />  
+          />
+          <Route
+            path="/admin/register-station"
+            element={<RegisterStation />}
+          />   
 
           {/* Cualquier otra ruta redirige al panel */}
           <Route path="*" element={<Navigate to="/admin" />} />

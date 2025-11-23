@@ -91,11 +91,21 @@ class Report(models.Model):
 class TamperMachine(models.Model):
 
     TAMPER_TYPE = (
-        ('unimat', 'Unimat'),
-        ('09-3x', '09-3X'),
-        ('dynamic', 'Dynamic Tamper'),
-        ('plain_line', 'Plain Line Tamper'),
-    )
+    # Bateadoras de Vía y Desvíos (equivalente a 'unimat')
+    ('unimat_4s', 'Unimat 4S (Universal)'),
+    ('unimat_08_475', 'Unimat 08-475/4S (Desvíos)'),
+    
+    # Bateadoras de Línea de Alto Rendimiento (equivalente a '09-3x' o 'plain_line')
+    ('09_3x_dyn', '09-3X Dynamic (Alto Rendimiento)'),
+    ('09_32_csm', '09-32 CSM (Línea Continua)'),
+    
+    # Bateadoras Dynamic (Estabilización y Tampeo - equivalente a 'dynamic')
+    ('dynamic_9000', 'Dynamic 9000 (Estabilización/Tampeo)'),
+    ('pms_2030', 'PMS 2030 (Plasser Measuring System)'),
+    
+    # Bateadoras de Línea Estándar (equivalente a 'plain_line')
+    ('duomatic_09', 'Duomatic 09 (Doble Bateadora)'),
+)
     model = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=100)
     year_built = models.IntegerField()

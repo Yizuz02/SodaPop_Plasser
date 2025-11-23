@@ -9,6 +9,7 @@ export default function Navbar() {
       <Link to="/admin/register-train">RegisterTrain</Link>
       <Link to="/admin/register-machine">RegisterMachine</Link>
       <Link to="/admin/register-traintrip">RegisterTraintrip</Link>
+      <Link to="/admin/register-station">RegisterStation</Link>
     </nav>
   );
 }
