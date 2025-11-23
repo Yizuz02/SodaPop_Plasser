@@ -9,28 +9,34 @@ from .views import (
     TrainViewSet,
     RouteViewSet,
     TrainTripViewSet,
-    ReportBatchAPI,  
+    ReportBatchAPI,
     TamperMachineViewSet,
     TamperOperationViewSet,
     UserRoleAPI,
-    stream_video_loop
+    TamperReportAPIView,
+    stream_video_loop,
 )
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'stations', StationViewSet)
-router.register(r'trains', TrainViewSet)
-router.register(r'routes', RouteViewSet)
-router.register(r'train-trips', TrainTripViewSet)
-router.register(r'tamper-machines', TamperMachineViewSet)
-router.register(r'tamper-operations', TamperOperationViewSet)
+router.register(r"users", UserViewSet)
+router.register(r"stations", StationViewSet)
+router.register(r"trains", TrainViewSet)
+router.register(r"routes", RouteViewSet)
+router.register(r"train-trips", TrainTripViewSet)
+router.register(r"tamper-machines", TamperMachineViewSet)
+router.register(r"tamper-operations", TamperOperationViewSet)
 
 urlpatterns = [
     path("report-batches/", ReportBatchAPI.as_view(), name="report-batches"),
-    path("reports/<int:report_id>/update/", ReportUpdateAPI.as_view(), name="report-update"),
+    path(
+        "reports/<int:report_id>/update/",
+        ReportUpdateAPI.as_view(),
+        name="report-update",
+    ),
     path("user/role/", UserRoleAPI.as_view(), name="user-role"),
-    path('machines-status/', TamperMachineStatusAPI.as_view(), name='machines-status'),
-    path('stream-video/<int:machine_id>/', stream_video_loop, name='stream_video'),
+    path("machines-status/", TamperMachineStatusAPI.as_view(), name="machines-status"),
+    path("stream-video/<int:machine_id>/", stream_video_loop, name="stream_video"),
+    path("tamper-report/", TamperReportAPIView.as_view(), name="tamper-report"),
 ]
 
 urlpatterns += router.urls
