@@ -1,7 +1,16 @@
 // utils/scheduleSimulation.js
 import L from "leaflet";
 
-/** Encuentra el punto más cercano */
+export let globalSimTime = 0;
+export function updateSimTime(t) {
+  globalSimTime = t;
+}
+
+/* -------------------------------------------------------
+   UTILS
+--------------------------------------------------------*/
+
+/** Encuentra el punto más cercano de una ruta */
 function findClosestIndex(path, targetLat, targetLon) {
   let best = 0, bestDist = Infinity;
   for (let i = 0; i < path.length; i++) {
@@ -16,10 +25,9 @@ function findClosestIndex(path, targetLat, targetLon) {
 function animateMarkerAlongPath({
   path,
   durationMs,
-  icon,
-  marker,           // 🔵 ahora recibe marker siempre
+  marker,
   registry,
-  isTrain = false,
+  isTrain,
   lineIdx,
   blockState,
   onStep,
@@ -34,11 +42,9 @@ function animateMarkerAlongPath({
   const safeDistance = 10;
 
   const intervalId = setInterval(() => {
-
-    // 🚧 Tren detenido por bloqueo
     if (isTrain && blockState.blocks[lineIdx]) {
-      const blocked = blockState.blocks[lineIdx].idx;
-      if (idx + safeDistance >= blocked) return;
+      const blockedIdx = blockState.blocks[lineIdx].idx;
+      if (idx + safeDistance >= blockedIdx) return;
     }
 
     idx++;
@@ -50,13 +56,14 @@ function animateMarkerAlongPath({
 
     marker.setLatLng(path[idx]);
     if (onStep) onStep(idx, marker);
-
   }, stepTime);
 
   registry.push({ marker, intervalId });
 }
 
-/** PROCESO PRINCIPAL */
+/* -------------------------------------------------------
+   SIMULADOR PRINCIPAL
+--------------------------------------------------------*/
 export function scheduleSimulation({
   map,
   layerGroup,
@@ -67,16 +74,18 @@ export function scheduleSimulation({
   const registry = [];
   registryRef.current = registry;
 
-  const blueMachines = {}; // 🔵 UNA sola máquina por ID
+  const blueMachines = {}; // una máquina por ID
   const blockState = { blocks: {} };
   const tampingLaunchedForLine = {};
 
+  /* -------------------------------------------------------
+     ICONOS
+  --------------------------------------------------------*/
   const trainIcon = L.divIcon({
     html: `<div style="background:#ffcc00;width:24px;height:16px;border-radius:4px;
     box-shadow:0 0 15px #fc0;display:flex;align-items:center;justify-content:center">🚄</div>`,
     iconSize: [24, 16],
     iconAnchor: [12, 8],
-    options: { type: "train" },
   });
 
   const tampingIcon = L.divIcon({
@@ -84,157 +93,144 @@ export function scheduleSimulation({
     box-shadow:0 0 12px #0ef;display:flex;align-items:center;justify-content:center">🛠️</div>`,
     iconSize: [22, 18],
     iconAnchor: [11, 9],
-    options: { type: "tamping" },
   });
 
+  /* -------------------------------------------------------
+     ACTIVAR REPARACIÓN
+  --------------------------------------------------------*/
   function triggerTampingForLine(lineIdx) {
     const fullPath = lineSegments[lineIdx];
     if (!fullPath) return;
 
-    const machines = schedule.tampingMachines.filter(m => (m.line - 1) === lineIdx);
+    const machines = schedule.tampingMachines.filter(
+      (m) => m.line - 1 === lineIdx
+    );
 
     machines.forEach((tm) => {
-      let targetIndex =
+      const targetIndex =
         tm.targetIndex ??
         findClosestIndex(fullPath, tm.targetLat, tm.targetLon);
 
       const [zLat, zLon] = fullPath[targetIndex];
 
-      // 🚨 bloquear línea desde YA
       blockState.blocks[lineIdx] = { idx: 0 };
 
-      // 🔵 dibujar zona
       const zoneMarker = L.circleMarker([zLat, zLon], {
-        radius: 8, fillColor: "#00e0ff", fillOpacity: 0.4,
-        color: "#00e0ff", weight: 2
+        radius: 8,
+        color: "#00e0ff",
+        fillColor: "#00e0ff",
+        fillOpacity: 0.4,
+        weight: 2,
       }).addTo(layerGroup);
+      registry.push({ marker: zoneMarker });
 
-      registry.push({ marker: zoneMarker, intervalId: null });
+      L.popup()
+        .setLatLng([zLat, zLon])
+        .setContent(`<b>⚠ Hundimiento detectado</b><br>Línea ${tm.line}<br>${tm.description}`)
+        .openOn(map);
 
-      // popup
-      L.popup().setLatLng([zLat, zLon]).setContent(`
-        <b>⚠ Hundimiento detectado</b><br>
-        Línea ${tm.line}<br>${tm.description || ""}
-      `).openOn(map);
-
-      // rutas
       const pathToTarget = fullPath.slice(0, targetIndex + 1);
       const restPath = fullPath.slice(targetIndex);
 
       const dwellMs = 4000;
       const travelMs = 3000;
 
-      // 🛠️ Crear marker azul SOLO UNA VEZ
       if (!blueMachines[tm.id]) {
         blueMachines[tm.id] = L.marker(pathToTarget[0], { icon: tampingIcon })
           .addTo(layerGroup);
       }
       const blue = blueMachines[tm.id];
 
-      const onStepTo = (i) => blockState.blocks[lineIdx] = { idx: i };
-      const onStepRest = (i) => blockState.blocks[lineIdx] = { idx: targetIndex + i };
+      const onStepTo = (i) => { blockState.blocks[lineIdx] = { idx: i }; };
+      const onStepRest = (i) => { blockState.blocks[lineIdx] = { idx: targetIndex + i }; };
 
-      // IR a la zona
-        animateMarkerAlongPath({
+      /* --- IR a reparar --- */
+      animateMarkerAlongPath({
         path: pathToTarget,
         durationMs: travelMs,
-        icon: tampingIcon,
         marker: blue,
         registry,
         isTrain: false,
         lineIdx,
         blockState,
         onStep: onStepTo,
-
         onComplete: () => {
-
-            // Esperar 4 s en la zona de reparación
-            setTimeout(() => {
-
-            // 🟦 1) QUITAR el círculo de reparación ANTES de avanzar
-            if (zoneMarker) {
-                layerGroup.removeLayer(zoneMarker);
-            }
-
-            // 🟦 2) LIBERAR la línea inmediatamente (para que trenes puedan salir)
+          setTimeout(() => {
+            layerGroup.removeLayer(zoneMarker);
             blockState.blocks[lineIdx] = null;
 
-            // 🟦 3) AVANZAR hacia adelante por el resto de la línea
+            /* --- AVANZAR --- */
             animateMarkerAlongPath({
-                path: restPath,
-                durationMs: 3000, // velocidad fija 3 s
-                icon: tampingIcon,
-                marker: blue,
-                registry,
-                isTrain: false,
-                lineIdx,
-                blockState,
-
-                onStep: (i) => {
-                // mantener actualizado el índice de bloqueo mientras se mueve
-                blockState.blocks[lineIdx] = { idx: targetIndex + i };
-                },
-
-                onComplete: () => {
-                // ya no hay nada más que hacer
-                // la línea ya fue liberada arriba
-                },
+              path: restPath,
+              durationMs: 3000,
+              marker: blue,
+              registry,
+              isTrain: false,
+              lineIdx,
+              blockState,
+              onStep: onStepRest,
+              onComplete: (marker) => {
+                if (marker) layerGroup.removeLayer(marker);
+                delete blueMachines[tm.id];
+                blockState.blocks[lineIdx] = null;
+              },
             });
-
-            }, dwellMs); // dwellMs = 4000 ms (4 s)
+          }, dwellMs);
         },
-        });
-
-
+      });
     });
   }
 
-  /** TRENES */
-  schedule.trains.forEach((train) => {
-    const lineIdx = train.line - 1;
-    const path = lineSegments[lineIdx];
-    const departMs = train.departureSec * 1000;
-    const travelMs = train.travelTimeSec * 1000;
+  /* -------------------------------------------------------
+     TRENES CONTROLADOS POR simTime
+  --------------------------------------------------------*/
+  function processTrainSchedule() {
+    schedule.trains.forEach((train) => {
+      const lineIdx = train.line - 1;
+      const path = lineSegments[lineIdx];
+      if (!path) return;
 
-    const launch = () => {
+      if (!train._launched && globalSimTime >= train.departureSec) {
+        train._launched = true;
 
-      if (blockState.blocks[lineIdx]) {
-        setTimeout(launch, 1000);
-        return;
+        if (blockState.blocks[lineIdx]) return;
+
+        const marker = L.marker(path[0], { icon: trainIcon }).addTo(layerGroup);
+
+        animateMarkerAlongPath({
+          path,
+          durationMs: train.travelTimeSec * 1000,
+          marker,
+          registry,
+          isTrain: true,
+          lineIdx,
+          blockState,
+          onComplete: () => {
+            layerGroup.removeLayer(marker);
+
+            if (!tampingLaunchedForLine[lineIdx]) {
+              tampingLaunchedForLine[lineIdx] = true;
+              triggerTampingForLine(lineIdx);
+            }
+          },
+        });
       }
+    });
+  }
 
-      const marker = L.marker(path[0], { icon: trainIcon }).addTo(layerGroup);
-
-      animateMarkerAlongPath({
-        path,
-        durationMs: travelMs,
-        icon: trainIcon,
-        marker,
-        registry,
-        isTrain: true,
-        lineIdx,
-        blockState,
-        onComplete: () => {
-
-          if (!tampingLaunchedForLine[lineIdx]) {
-            tampingLaunchedForLine[lineIdx] = true;
-            triggerTampingForLine(lineIdx);
-          }
-
-          setTimeout(launch, departMs);
-        },
-      });
-
-    };
-
-    setTimeout(launch, departMs);
-  });
-
+  /* -------------------------------------------------------
+     LOOP PRINCIPAL (SIN REINICIO)
+  --------------------------------------------------------*/
+  setInterval(() => {
+    processTrainSchedule();
+  }, 200);
 }
 
-/** Limpieza */
+/* -------------------------------------------------------
+   LIMPIEZA
+--------------------------------------------------------*/
 export function clearSimulation(registryRef, layerGroup) {
-  registryRef.current.forEach(item => {
+  registryRef.current.forEach((item) => {
     if (item.intervalId) clearInterval(item.intervalId);
     if (item.marker) layerGroup.removeLayer(item.marker);
   });
