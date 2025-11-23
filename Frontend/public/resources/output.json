@@ -1,0 +1,22 @@
+[
+  {
+    "start_latitude": 19.428915,
+    "end_latitude": 19.42807,
+    "start_longitude": -99.151825,
+    "end_longitude": -99.1516,
+    "lift_left_mm": 32.20124009054954,
+    "lift_right_mm": 36.95863836849516,
+    "adjustment_left_mm": 29.237407684326172,
+    "adjustment_right_mm": 32.406097412109375
+  },
+  {
+    "start_latitude": 19.42687,
+    "end_latitude": 19.40465,
+    "start_longitude": -99.15317,
+    "end_longitude": -99.19116,
+    "lift_left_mm": 0.9419774663685679,
+    "lift_right_mm": 0.24289909993919434,
+    "adjustment_left_mm": 1.0669010877609253,
+    "adjustment_right_mm": 0.7597187757492065
+  }
+]
