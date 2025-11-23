@@ -105,3 +105,25 @@
   .btn-delete:hover {
     background: #b82828;
   }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+  
+  .logout-btn {
+    padding: 8px 15px;
+    background: #e02f2f;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  
+  .logout-btn:hover {
+    background: #b82828;
+  }

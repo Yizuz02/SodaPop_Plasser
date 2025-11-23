@@ -1,0 +1,52 @@
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .modal {
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 12px;
+    width: 420px;
+    border: 2px solid #ffcc00;
+    color: white;
+  }
+  
+  .detailsBox p {
+    margin: 6px 0;
+  }
+  
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .accept {
+    background: #4CAF50;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .reject {
+    background: #c0392b;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+  }

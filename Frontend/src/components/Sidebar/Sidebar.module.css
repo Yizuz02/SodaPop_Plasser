@@ -1,18 +1,24 @@
 .sidebar {
-    width: 260px;
-    background-color: #141414;
+    width: 250px;
     height: 100vh;
-    padding: 25px 20px;
-    border-right: 3px solid #ffcc00;
+    background-color: #181818;
+    padding: 30px 20px;
+    border-right: 2px solid #ffcc00;
     display: flex;
     flex-direction: column;
     gap: 40px;
   }
   
-  .logo {
-    color: #ffcc00;
-    font-size: 22px;
+  .logoBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .logoText {
+    font-size: 20px;
     font-weight: bold;
+    color: #ffcc00;
   }
   
   .nav {
@@ -24,21 +30,20 @@
   .link {
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-size: 17px;
-    color: #dcdcdc;
+    gap: 12px;
     text-decoration: none;
-    padding: 10px 5px;
-    border-radius: 8px;
-    transition: all 0.2s ease-in-out;
+    color: #e0e0e0;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    transition: 0.2s;
   }
   
   .link:hover {
-    background-color: #ffcc00;
-    color: black;
-    cursor: pointer;
+    background: #222;
+    color: #ffcc00;
   }
   
   .icon {
-    font-size: 22px;
+    font-size: 20px;
   }
