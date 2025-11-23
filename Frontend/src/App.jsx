@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
+import RegisterRoute from "./pages/RegisterRoute";
+import RegisterMachine from "./pages/RegisterMachine";
+import RegisterTrain from "./pages/RegisterTrain";
+import RegisterTraintrip from "./pages/RegisterTraintrip";
+import RegisterStation from "./pages/RegisterStation";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
@@ -22,7 +26,6 @@ export default function App() {
     setCurrentUser(null);
   };
 
-  // Si no hay rol, siempre login
   if (!role) return <Login onLogin={handleLogin} />;
 
   return (
@@ -30,10 +33,35 @@ export default function App() {
       {/* ADMIN */}
       {role === "admin" && (
         <>
+          {/* Panel principal */}
           <Route
             path="/admin"
             element={<AdminPanel onLogout={handleLogout} />}
           />
+
+          {/* Formulario RegisterRoute */}
+          <Route
+            path="/admin/register-route"
+            element={<RegisterRoute />}
+          />
+          <Route
+            path="/admin/register-train"
+            element={<RegisterTrain />}
+          />
+          <Route
+            path="/admin/register-machine"
+            element={<RegisterMachine />}
+          />
+          <Route
+            path="/admin/register-traintrip"
+            element={<RegisterTraintrip />}
+          />
+          <Route
+            path="/admin/register-station"
+            element={<RegisterStation />}
+          />   
+
+          {/* Cualquier otra ruta redirige al panel */}
           <Route path="*" element={<Navigate to="/admin" />} />
         </>
       )}

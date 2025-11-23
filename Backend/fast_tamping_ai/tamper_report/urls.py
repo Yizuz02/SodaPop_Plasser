@@ -10,7 +10,8 @@ from .views import (
     TrainTripViewSet,
     ReportBatchAPI,  
     TamperMachineViewSet,
-    TamperOperationViewSet
+    TamperOperationViewSet,
+    UserRoleAPI
 )
 
 router = DefaultRouter()
@@ -25,6 +26,7 @@ router.register(r'tamper-operations', TamperOperationViewSet)
 urlpatterns = [
     path("report-batches/", ReportBatchAPI.as_view(), name="report-batches"),
     path("reports/<int:report_id>/update/", ReportUpdateAPI.as_view(), name="report-update"),
+    path("user/role/", UserRoleAPI.as_view(), name="user-role"),
 ]
 
 urlpatterns += router.urls

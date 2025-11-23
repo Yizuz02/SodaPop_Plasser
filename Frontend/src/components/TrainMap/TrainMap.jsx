@@ -5,14 +5,22 @@ import styles from "./TrainMap.module.css";
 
 import { drawRailLines } from "./drawRailLines";
 import { scheduleSimulation, clearSimulation } from "./scheduleSimulation";
+import useSimClock from "../hook/useSimClock";
+import { updateSimTime } from "./scheduleSimulation";
 
 export default function TrainMap() {
+  const simTime = useSimClock({ speed: 10 });
+
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
 
   // Para poder limpiar animaciones (trenes + tamping)
   const simulationRegistryRef = useRef(null);
+
+  useEffect(() => {
+    updateSimTime(simTime);
+  }, [simTime]);
 
   useEffect(() => {
     // Crear mapa solo una vez
