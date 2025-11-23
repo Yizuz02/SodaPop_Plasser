@@ -1,6 +1,7 @@
 import styles from "./Sidebar.module.css";
 import { MdDashboard, MdSettings } from "react-icons/md";
 import { FaTools } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function Sidebar() {
   return (
@@ -8,20 +9,22 @@ export default function Sidebar() {
       <h1 className={styles.logo}>Fast Tamping AI</h1>
 
       <nav className={styles.nav}>
-        <a className={styles.link} href="#">
+
+        <Link className={styles.link} to="/dashboard">
           <MdDashboard className={styles.icon} />
           Dashboard
-        </a>
+        </Link>
 
-        <a className={styles.link} href="#">
+        <Link className={styles.link} to="/diagnostics">
           <FaTools className={styles.icon} />
-          Lift Diagnosing
-        </a>
+          Diagnostics & History
+        </Link>
 
-        <a className={styles.link} href="#">
+        <Link className={styles.link} to="/cameras">
           <MdSettings className={styles.icon} />
-          Track Parameters
-        </a>
+          Machine Cameras
+        </Link>
+
       </nav>
     </aside>
   );

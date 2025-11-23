@@ -12,16 +12,16 @@ export default function Login({ onLogin }) {
     const username = user.trim();
     const password = pass.trim();
 
-    // Admin credentials
+    //Credenciales del administrador
     const adminUser = "admin";
     const adminPass = "Plasser2025!";
 
     if (username === adminUser && password === adminPass) {
-      onLogin("admin", { name: "Admin", lastname: "", username: "admin" });
+      onLogin("admin", "Admin");
       return;
     }
 
-
+    // Lista de operadores guardados
     const operators = JSON.parse(localStorage.getItem("operators")) || [];
 
     const found = operators.find(
@@ -29,7 +29,8 @@ export default function Login({ onLogin }) {
     );
 
     if (found) {
-      onLogin("operator", found);
+      const fullName = `${found.name} ${found.lastname}`;
+      onLogin("operator", fullName);
       return;
     }
 
@@ -39,8 +40,11 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-container">
       <div className="login-box">
-
-        <img src="/logoaustria.png" className="logo-img" alt="Fast Tamping AI Logo" />
+        <img
+          src="/logoaustria.png"
+          className="logo-img"
+          alt="Fast Tamping AI Logo"
+        />
 
         <h2 className="title">Fast Tamping AI</h2>
         <p className="subtitle">Railway Maintenance</p>
@@ -64,10 +68,7 @@ export default function Login({ onLogin }) {
 
           <button type="submit">Login</button>
         </form>
-
       </div>
     </div>
   );
 }
-
-

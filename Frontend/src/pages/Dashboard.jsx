@@ -5,26 +5,25 @@ import AlertsPanel from "../components/AlertsPanel/XAlertsPanel.jsx";
 import MachinesStatus from "../components/MachinesStatus/MachinesStatus.jsx";
 import ArrivalTimer from "../components/ArrivalTimer/ArrivalTimer.jsx";
 import KPIsPanel from "../components/KPIsPanel/KPIsPanel.jsx";
-import railwayData from '../resources/output_lifts.json';
 
 import styles from "./Dashboard.module.css";
 
-export default function Dashboard() {
+export default function Dashboard({ user }) {
   return (
-    <div className={styles.layout}>
+    <div className={styles.container}>
       <Sidebar />
 
-      <div className={styles.content}>
-        <Header />
+      <main className={styles.main}>
+        <Header user={user} />
 
         <div className={styles.grid}>
-          <TrainMap railwayData={railwayData} />
+          <TrainMap />
           <AlertsPanel />
           <ArrivalTimer />
           <MachinesStatus />
           <KPIsPanel />
         </div>
-      </div>
+      </main>
     </div>
   );
 }
