@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from .models import Station, Train, TrainTrip, TamperMachine, TamperOperation, Report, ReportBatch, Route 
 from rest_framework import viewsets, permissions
-from .serializers import ReportUpdateSerializer, UserSerializer, StationSerializer, TrainSerializer, TamperOperationSerializer, TamperMachineSerializer
+from .serializers import ReportUpdateSerializer, TamperMachineStatusSerializer, UserSerializer, StationSerializer, TrainSerializer, TamperOperationSerializer, TamperMachineSerializer
 from .serializers import ReportBatchCreateSerializer, TrainTripSerializer, ReportBatchSerializer, ReportSerializer, RouteSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -148,3 +148,10 @@ class ReportUpdateAPI(APIView):
     # Permitir también PUT si quieres
     def put(self, request, report_id):
         return self.patch(request, report_id)
+    
+class TamperMachineStatusAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated] 
+    def get(self, request):
+        machines = TamperMachine.objects.all()
+        serializer = TamperMachineStatusSerializer(machines, many=True)
+        return Response(serializer.data)

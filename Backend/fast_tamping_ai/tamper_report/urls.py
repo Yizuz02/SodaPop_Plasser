@@ -3,6 +3,7 @@ from django.urls import path
 
 from .views import (
     ReportUpdateAPI,
+    TamperMachineStatusAPI,
     UserViewSet,
     StationViewSet,
     TrainViewSet,
@@ -27,6 +28,7 @@ urlpatterns = [
     path("report-batches/", ReportBatchAPI.as_view(), name="report-batches"),
     path("reports/<int:report_id>/update/", ReportUpdateAPI.as_view(), name="report-update"),
     path("user/role/", UserRoleAPI.as_view(), name="user-role"),
+    path('machines-status/', TamperMachineStatusAPI.as_view(), name='machines-status'),
 ]
 
 urlpatterns += router.urls

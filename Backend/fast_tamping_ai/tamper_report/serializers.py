@@ -143,4 +143,23 @@ class TamperOperationSerializer(serializers.ModelSerializer):
         ]
 
 
+class TamperMachineStatusSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    current_route = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TamperMachine
+        fields = ['id', 'model', 'tamper_type', 'status', 'current_route']
+
+    def get_status(self, obj):
+        # Revisamos si hay alguna operación sin end_time
+        ongoing_op = obj.tamperoperation_set.filter(end_time__isnull=True).first()
+        return "Busy" if ongoing_op else "Free"
+
+    def get_current_route(self, obj):
+        ongoing_op = obj.tamperoperation_set.filter(end_time__isnull=True).first()
+        if ongoing_op:
+            return ongoing_op.report_batch.train_trip.route.route_code
+        return None
+
 
