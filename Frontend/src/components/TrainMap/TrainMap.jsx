@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import styles from "./TrainMap.module.css";
@@ -11,7 +11,7 @@ export default function TrainMap({ railwayData }) {
   const [stats, setStats] = useState({ total: 0, critical: 0, high: 0, medium: 0, low: 0 });
 
   useEffect(() => {
-    // Inicializar el mapa solo una vez
+    // Crear mapa una sola vez
     if (!mapInstanceRef.current && mapRef.current) {
       mapInstanceRef.current = L.map(mapRef.current, {
         center: [45.0, 10.0], // Centro por defecto
@@ -20,11 +20,13 @@ export default function TrainMap({ railwayData }) {
         attributionControl: false,
       });
 
-      // Añadir capa de mapa oscuro
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '',
-        maxZoom: 19,
-      }).addTo(mapInstanceRef.current);
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 19,
+          attribution: "",
+        }
+      ).addTo(mapInstanceRef.current);
     }
 
     // Dibujar rutas cuando cambien los datos
@@ -153,6 +155,175 @@ export default function TrainMap({ railwayData }) {
         mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
       }
     }
+    routeLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current);
+
+    // Leer CSV
+    fetch("/resources/datos_inspeccion_vias.csv")
+      .then(res => res.text())
+      .then(text => {
+        const rows = text.trim().split("\n");
+        const header = rows[0].split(",");
+        const latIdx = header.indexOf("Lat_barato");
+        const lonIdx = header.indexOf("Lon_barato");
+
+        if (latIdx === -1 || lonIdx === -1) {
+          console.error("No existe Lat_barato / Lon_barato en el CSV");
+          return;
+        }
+
+        const latlngs = [];
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i].split(",");
+          const lat = parseFloat(cols[latIdx]);
+          const lon = parseFloat(cols[lonIdx]);
+          if (!isNaN(lat) && !isNaN(lon)) latlngs.push([lat, lon]);
+        }
+
+        if (latlngs.length === 0) return;
+
+        // ====== DIVIDIR EN LÍNEAS ======
+        const totalPoints = latlngs.length; // 15000
+        const numLines = 3;                // 3 rutas
+        const pointsPerLine = Math.floor(totalPoints / numLines); // 5000
+
+        // Colores por línea
+        const lineColors = [
+          "#ffcc00", // Línea 1
+          "#00b5ff", // Línea 2
+          "#7CFC00", // Línea 3
+        ];
+
+        let globalBounds = L.latLngBounds([]);
+
+        // Icono de estación
+        const stationIcon = L.divIcon({
+          html: `<div style="
+            background: #ffffff;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.9);
+          "></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+
+        // Guardar una posición para el tren (línea 1)
+        let trainPosition = null;
+
+        for (let line = 0; line < numLines; line++) {
+          const startIdx = line * pointsPerLine;
+          const endIdx =
+            line === numLines - 1
+              ? totalPoints
+              : (line + 1) * pointsPerLine;
+
+          const segment = latlngs.slice(startIdx, endIdx);
+          if (segment.length === 0) continue;
+
+          const color = lineColors[line % lineColors.length];
+
+          // Polyline gruesa (sombreada)
+          const shaded = L.polyline(segment, {
+            color,
+            weight: 16,
+            opacity: 0.35,
+            lineCap: "round",
+          }).addTo(routeLayerRef.current);
+
+          // Polyline fina encima
+          L.polyline(segment, {
+            color,
+            weight: 4,
+            opacity: 0.9,
+            dashArray: "12, 8",
+          }).addTo(routeLayerRef.current);
+
+          globalBounds.extend(shaded.getBounds());
+
+          // Marcadores inicio/fin de cada línea
+          const segStart = segment[0];
+          const segEnd = segment[segment.length - 1];
+
+          L.marker(segStart, { icon: stationIcon })
+            .bindPopup(`🚉 Inicio línea ${line + 1}`)
+            .addTo(routeLayerRef.current);
+
+          L.marker(segEnd, { icon: stationIcon })
+            .bindPopup(`🚉 Fin línea ${line + 1}`)
+            .addTo(routeLayerRef.current);
+
+          // Tren en la línea 1 (~30% del recorrido)
+          if (line === 0) {
+            const idx = Math.floor(segment.length * 0.3);
+            trainPosition = segment[idx];
+          }
+        }
+
+        // Ajustar mapa a todo el conjunto de líneas
+        if (globalBounds.isValid()) {
+          mapInstanceRef.current.fitBounds(globalBounds, { padding: [40, 40] });
+        }
+
+        // ====== Tren amarillo en línea 1 ======
+        if (trainPosition) {
+          const trainIcon = L.divIcon({
+            html: `<div style="
+              background: #ffcc00;
+              width: 24px;
+              height: 16px;
+              border-radius: 4px;
+              box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+            ">🚄</div>`,
+            iconSize: [24, 16],
+            iconAnchor: [12, 8],
+          });
+
+          L.marker(trainPosition, { icon: trainIcon })
+            .bindPopup(
+              '<div style="color: #ffcc00; font-weight: 600;">🚄 Tren en tránsito (Línea 1)</div>'
+            )
+            .addTo(routeLayerRef.current);
+        }
+
+        // ====== (Opcional) JSON de secciones, lo dejo igual ======
+        fetch("/resources/output_modelo2_sections.json")
+          .then(r => r.json())
+          .then(sections => {
+            sections.forEach(section => {
+              const p1 = [section.lat_inicio, section.lon_inicio];
+              const p2 = [section.lat_fin, section.lon_fin];
+
+              const color =
+                section.hundimiento_mm > 500000
+                  ? "#ff4d4d"
+                  : section.hundimiento_mm > 200000
+                  ? "#ffa500"
+                  : "#00ccff";
+
+              L.polyline([p1, p2], {
+                color,
+                weight: 18,
+                opacity: 0.3,
+                lineCap: "round",
+              })
+                .bindPopup(`
+                  <b>Sección ${section.seccion_id}</b><br/>
+                  Hundimiento: ${section.hundimiento_mm.toFixed(2)} mm
+                `)
+                .addTo(routeLayerRef.current);
+            });
+          })
+          .catch(err =>
+            console.error("Error cargando JSON de secciones", err)
+          );
+      })
+      .catch(err => console.error("Error cargando CSV", err));
 
     return () => {
       // Cleanup de capas, no del mapa completo
