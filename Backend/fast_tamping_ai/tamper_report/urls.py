@@ -12,7 +12,8 @@ from .views import (
     ReportBatchAPI,  
     TamperMachineViewSet,
     TamperOperationViewSet,
-    UserRoleAPI
+    UserRoleAPI,
+    stream_video_loop
 )
 
 router = DefaultRouter()
@@ -29,6 +30,7 @@ urlpatterns = [
     path("reports/<int:report_id>/update/", ReportUpdateAPI.as_view(), name="report-update"),
     path("user/role/", UserRoleAPI.as_view(), name="user-role"),
     path('machines-status/', TamperMachineStatusAPI.as_view(), name='machines-status'),
+    path('stream-video/<int:machine_id>/', stream_video_loop, name='stream_video'),
 ]
 
 urlpatterns += router.urls

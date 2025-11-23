@@ -1,4 +1,7 @@
+import time
+import cv2
 from django.contrib.auth.models import User
+from django.http import HttpResponseNotFound, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from .models import Station, Train, TrainTrip, TamperMachine, TamperOperation, Report, ReportBatch, Route 
 from rest_framework import viewsets, permissions
@@ -7,6 +10,11 @@ from .serializers import ReportBatchCreateSerializer, TrainTripSerializer, Repor
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import os
+from django.conf import settings
+
+CROP_WIDTH = 320
+CROP_HEIGHT = 240
 
 class UserRoleAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -155,3 +163,75 @@ class TamperMachineStatusAPI(APIView):
         machines = TamperMachine.objects.all()
         serializer = TamperMachineStatusSerializer(machines, many=True)
         return Response(serializer.data)
+    
+def is_machine_busy(machine_id):
+    try:
+        machine = TamperMachine.objects.get(id=machine_id)
+    except TamperMachine.DoesNotExist:
+        return None  # máquina no existe
+
+    ongoing_op = machine.tamperoperation_set.filter(end_time__isnull=True).first()
+    return ongoing_op is not None
+
+def generate_frames(video_path, machine_id):
+    while True:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print(f"No se pudo abrir el video: {video_path}")
+            break
+
+        delay = 1 / 30
+        success, frame = cap.read()
+        while cap.isOpened():
+            
+            if not success:
+                break  # fin del video, reinicia
+
+            new_width = CROP_WIDTH
+            h, w = frame.shape[:2]
+
+            # calcular altura proporcional
+            aspect_ratio = new_width / w
+            new_height = int(h * aspect_ratio)
+
+            frame = cv2.resize(frame, (new_width, new_height))
+
+            # Crop central
+            h, w, _ = frame.shape
+            x_start = max((w - CROP_WIDTH) // 2, 0)
+            y_start = max((h - CROP_HEIGHT) // 2, 0)
+            frame_cropped = frame[y_start:y_start+CROP_HEIGHT, x_start:x_start+CROP_WIDTH]
+
+            # Convierte frame a JPEG
+            _, buffer = cv2.imencode('.jpg', frame_cropped)
+            frame_bytes = buffer.tobytes()
+
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" +
+                frame_bytes +
+                b"\r\n"
+            )
+
+            time.sleep(delay)
+            busy = is_machine_busy(machine_id)
+            if busy:
+                success, frame = cap.read()
+                
+
+        cap.release()
+
+
+def stream_video_loop(request, machine_id):
+    
+    busy = is_machine_busy(machine_id)
+    # ❌ Máquina no existe
+    if busy is None:
+        return HttpResponseNotFound("Machine not found")
+
+    video_path = os.path.join(settings.MEDIA_ROOT, f"videos/video{machine_id}.mp4")
+
+    return StreamingHttpResponse(
+        generate_frames(video_path, machine_id),
+        content_type="multipart/x-mixed-replace; boundary=frame"
+    )

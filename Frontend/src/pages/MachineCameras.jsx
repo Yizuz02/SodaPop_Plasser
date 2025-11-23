@@ -14,38 +14,53 @@ export default function TrainCameras({ user }) {
           
           {/* Cámara 1 */}
           <div className={styles.cameraCard}>
-            <h3 className={styles.camTitle}>Front Camera</h3>
-            <video 
-              className={styles.video}
-              controls
-              autoPlay
-              loop
-              muted
-              src="/videos/Camara/video1.mp4"
+            <h3 className={styles.camTitle}>Camara Maquina 1</h3>
+
+            <img
+              src="http://localhost:8000/api/stream-video/1/" // puedes cambiar el 1 por el ID
+              alt="Video en vivo"
+              style={{
+                width: "100%",
+                height: "240px",
+                objectFit: "cover",
+                borderRadius: "8px",
+                border: "1px solid #444",
+                display: "block"
+              }}
             />
           </div>
           {/* Cámara 2 */}
           <div className={styles.cameraCard}>
-            <h3 className={styles.camTitle}>Cabin Camera</h3>
-            <video 
-              className={styles.video}
-              controls
-              autoPlay
-              loop
-              muted
-              src="/videos/Camara/video2.mp4"
+            <h3 className={styles.camTitle}>Camara Maquina 2</h3>
+
+            <img
+              src="http://localhost:8000/api/stream-video/2/" // puedes cambiar el 1 por el ID
+              alt="Video en vivo"
+              style={{
+                width: "100%",
+                height: "240px",
+                objectFit: "cover",
+                borderRadius: "8px",
+                border: "1px solid #444",
+                display: "block"
+              }}
             />
           </div>
           {/* Cámara 3 */}
           <div className={styles.cameraCard}>
-            <h3 className={styles.camTitle}>Rear Camera</h3>
-            <video 
-              className={styles.video}
-              controls
-              autoPlay
-              loop
-              muted
-              src="/videos/Camara/video3.mp4"
+            <h3 className={styles.camTitle}>Camara Maquina 3</h3>
+
+            <img
+              src="http://localhost:8000/api/stream-video/3/" // puedes cambiar el 1 por el ID
+              alt="Video en vivo"
+              style={{
+                width: "100%",
+                height: "240px",
+                objectFit: "cover",
+                borderRadius: "8px",
+                border: "1px solid #444",
+                display: "block"
+              }}
             />
           </div>
         </div>

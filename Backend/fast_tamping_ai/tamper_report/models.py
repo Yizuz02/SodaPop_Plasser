@@ -124,7 +124,7 @@ class TamperOperation(models.Model):
     report_batch = models.ForeignKey(ReportBatch, on_delete=models.CASCADE)
 
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    end_time = models.DateTimeField(blank=True, null=True)
 
     operator = models.ForeignKey(
         User,
@@ -135,7 +135,7 @@ class TamperOperation(models.Model):
 
     def __str__(self):
         return (
-            f"{self.tamper.name} Operation on {self.report_batch.train_trip.route.route_code} "
+            f"{self.tamper.id} Operation on {self.report_batch.train_trip.route.route_code} "
             f"({self.start_time.date()})"
         )
 
