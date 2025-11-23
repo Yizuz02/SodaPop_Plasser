@@ -25,6 +25,11 @@ export default function Sidebar() {
           Machine Cameras
         </Link>
 
+        <Link className={styles.link} to="/tamping-machines">
+          <FaTools className={styles.icon} />
+          Tamping Machines
+        </Link>
+
       </nav>
     </aside>
   );

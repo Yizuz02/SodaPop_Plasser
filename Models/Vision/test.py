@@ -27,7 +27,7 @@ model.to(device)
 model.eval()
 
 # Cargar imagen con PIL
-img_path = "../../../../Datasets/Rieles/Dataset/test/prueba3.jpg"
+img_path = "../../../../Datasets/Rieles/Dataset/test/prueba9.jpg"
 img = Image.open(img_path).convert("RGB")
 
 # Transformar a tensor
