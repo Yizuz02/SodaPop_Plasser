@@ -38,4 +38,41 @@
 .status {
   color: #ddd;
   font-size: 14px;
-}
+}.header {
+    width: 100%;
+    background: #1a1a1a;
+    border-bottom: 3px solid #ffcc00;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .title {
+    color: #ffcc00;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  
+  .userBox {
+    text-align: right;
+    color: white;
+  }
+  
+  .role {
+    background: #ffcc00;
+    color: black;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+  
+  .name {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+  }

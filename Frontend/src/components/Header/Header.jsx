@@ -1,19 +1,15 @@
 import styles from "./Header.module.css";
 
-export default function Header() {
+export default function Header({ user }) {
   return (
     <header className={styles.header}>
-      <div className={styles.left}>
-        <img src="/logoaustria.png" alt="Fast Tamping AI" className={styles.logo} />
+      <h2 className={styles.title}>Fast Tamping AI</h2>
 
-        <div className={styles.textGroup}>
-          <h1 className={styles.appName}>Fast Tamping AI</h1>
-          <span className={styles.pageName}>Dashboard</span>
-        </div>
-      </div>
-
-      <div className={styles.right}>
-        <span className={styles.user}>Operator Online</span>
+      <div className={styles.userBox}>
+        <span className={styles.role}>Operator</span>
+        <span className={styles.name}>
+          {user?.name} {user?.lastname}
+        </span>
       </div>
     </header>
   );

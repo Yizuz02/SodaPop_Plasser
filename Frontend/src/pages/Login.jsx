@@ -4,15 +4,36 @@ import "./login.css";
 export default function Login({ onLogin }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (user.trim() !== "" && pass.trim() !== "") {
-      onLogin();
-    } else {
-      alert("Please, enter your credentials");
+    const username = user.trim();
+    const password = pass.trim();
+
+    // Admin credentials
+    const adminUser = "admin";
+    const adminPass = "Plasser2025!";
+
+    if (username === adminUser && password === adminPass) {
+      onLogin("admin", { name: "Admin", lastname: "", username: "admin" });
+      return;
     }
+
+
+    const operators = JSON.parse(localStorage.getItem("operators")) || [];
+
+    const found = operators.find(
+      (op) => op.username === username && op.password === password
+    );
+
+    if (found) {
+      onLogin("operator", found);
+      return;
+    }
+
+    setError("Incorrect username or password");
   };
 
   return (
@@ -23,6 +44,8 @@ export default function Login({ onLogin }) {
 
         <h2 className="title">Fast Tamping AI</h2>
         <p className="subtitle">Railway Maintenance</p>
+
+        {error && <p className="error-msg">{error}</p>}
 
         <form onSubmit={handleSubmit}>
           <input
@@ -46,3 +69,5 @@ export default function Login({ onLogin }) {
     </div>
   );
 }
+
+
